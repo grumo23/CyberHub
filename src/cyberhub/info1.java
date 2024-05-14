@@ -111,27 +111,32 @@ public class info1 extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(20, Short.MAX_VALUE)
+                        .addComponent(jLabelNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jLabelDesarrolladora, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabelLanzamiento, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabelPlataformas, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabelFormato, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabelNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(40, 40, 40)
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton2)
-                        .addGap(115, 115, 115)
-                        .addComponent(jButton3)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 48, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(20, 20, 20)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jLabelDesarrolladora, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabelLanzamiento, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabelPlataformas, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabelFormato, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(40, 40, 40)
+                                .addComponent(jButton1)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton2)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton3)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addComponent(jLabelImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(87, 87, 87))
+                .addGap(23, 23, 23))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -168,23 +173,22 @@ public class info1 extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         String nombreUsuario = jLabel1.getText();
-        boolean aniadido = true;
+boolean aniadido = true;
 
 try {
     Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
     
-    String sqlSelect = "SELECT id_del_juego FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ? AND aniadido = false";
+    String sqlSelect = "SELECT id_del_juego FROM comentario WHERE id_del_juego = ? AND aniadido = false";
     PreparedStatement selectStatement = con.prepareStatement(sqlSelect);
     selectStatement.setString(1, idJuego);
-    selectStatement.setString(2, nombreUsuario);
     
     ResultSet resultSet = selectStatement.executeQuery();
     
     if (resultSet.next()) {
-        String updateSql = "UPDATE comentario SET aniadido = true WHERE id_del_juego = ? AND nombre_usuario = ?";
+        // Ya existe un registro para este juego sin marcar como añadido
+        String updateSql = "UPDATE comentario SET aniadido = true WHERE id_del_juego = ?";
         PreparedStatement updateStatement = con.prepareStatement(updateSql);
         updateStatement.setString(1, idJuego);
-        updateStatement.setString(2, nombreUsuario);
         
         int rowsUpdated = updateStatement.executeUpdate();
         
@@ -196,6 +200,7 @@ try {
         
         updateStatement.close();
     } else {
+        // No hay registros existentes para este juego sin marcar como añadido
         String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, aniadido) VALUES (?, ?, ?)";
         PreparedStatement insertStatement = con.prepareStatement(insertSql);
         insertStatement.setString(1, idJuego);
@@ -212,14 +217,21 @@ try {
         
         insertStatement.close();
     }
-    
-    resultSet.close();
-    selectStatement.close();
-    con.close();
-} catch (SQLException ex) {
-    ex.printStackTrace();
-    System.out.println("Error al agregar o actualizar el registro en la base de datos");
+} catch (SQLException e) {
+    // Manejar excepciones de SQL
+    e.printStackTrace();
+} finally {
+    // Cerrar la conexión
+    try {
+        if (con != null) {
+            con.close();
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
 }
+
+
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed

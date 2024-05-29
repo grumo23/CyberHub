@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.table.DefaultTableModel;
+import java.sql.PreparedStatement;
 
 
 
@@ -127,9 +128,9 @@ String user = nombreUsuario;
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 60)); // NOI18N
 
@@ -153,12 +154,8 @@ String user = nombreUsuario;
             }
         });
 
-        jButton2.setText("Volver");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        jLabel2.setFont(new java.awt.Font("Roboto Thin", 1, 18)); // NOI18N
+        jLabel2.setText("Juegos que te gustan:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -168,15 +165,15 @@ String user = nombreUsuario;
                 .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1121, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(18, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 463, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton1)
-                        .addGap(34, 34, 34)
-                        .addComponent(jButton2)
-                        .addGap(175, 175, 175))))
+                        .addGap(281, 281, 281))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1121, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(18, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -184,26 +181,34 @@ String user = nombreUsuario;
                 .addGap(72, 72, 72)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton1)
-                        .addComponent(jButton2)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
+                    .addComponent(jButton1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 304, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14))
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 try {
     int rowIndex = jTable1.getSelectedRow();
     String idJuego = (String) jTable1.getValueAt(rowIndex, 11);
+    String nombreUsuario = jLabel1.getText(); // Obtener el nombre de usuario
+    
     String comentario = (String) jTable1.getValueAt(rowIndex, 12);
+    
     if (comentario == null || comentario.isEmpty()) {
-        String sqlDelete = "DELETE FROM comentario WHERE id_del_juego = '" + idJuego + "'";
-        Statement deleteStatement = con.createStatement();
-        int rowsDeleted = deleteStatement.executeUpdate(sqlDelete);
+        // Si el comentario es nulo o vacío, elimina el registro
+        String sqlDelete = "DELETE FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
+        PreparedStatement deleteStatement = con.prepareStatement(sqlDelete);
+        deleteStatement.setString(1, idJuego);
+        deleteStatement.setString(2, nombreUsuario); // Agregar el nombre de usuario a la condición
+        
+        int rowsDeleted = deleteStatement.executeUpdate();
 
         if (rowsDeleted > 0) {
             System.out.println("Se ha eliminado el registro debido a que el comentario era null o vacío");
@@ -213,27 +218,32 @@ try {
         
         deleteStatement.close();
     } else {
-        String sqlUpdate = "UPDATE comentario SET aniadido = false WHERE id_del_juego = '" + idJuego + "'";
-        Statement updateStatement = con.createStatement();
-        int rowsUpdated = updateStatement.executeUpdate(sqlUpdate);
+        // Si el comentario no es nulo ni vacío, actualiza el estado del registro
+        String sqlUpdate = "UPDATE comentario SET aniadido = false WHERE id_del_juego = ? AND nombre_usuario = ?";
+        PreparedStatement updateStatement = con.prepareStatement(sqlUpdate);
+        updateStatement.setString(1, idJuego);
+        updateStatement.setString(2, nombreUsuario); // Agregar el nombre de usuario a la condición
+
+        int rowsUpdated = updateStatement.executeUpdate();
 
         if (rowsUpdated > 0) {
-            System.out.println("El valor de 'añadido' se ha cambiado a false para el juego con ID: " + idJuego);
+            System.out.println("El valor de 'aniadido' se ha cambiado a false para el juego con ID: " + idJuego);
         } else {
             System.out.println("No se encontraron registros para actualizar");
         }
+        
         updateStatement.close();
     }
+    
+    // Actualizar la tabla después de realizar la operación
     actualizarTable(con);
 } catch (SQLException ex) {
     ex.printStackTrace();
     System.out.println("Error al cambiar el valor de 'aniadido' o al eliminar el registro");
 }
-    }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        this.dispose();
-    }//GEN-LAST:event_jButton2ActionPerformed
+
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -272,8 +282,8 @@ try {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables

@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import javax.swing.JLabel;
 
 public class comentarios extends javax.swing.JFrame {
 
@@ -19,9 +20,6 @@ public class comentarios extends javax.swing.JFrame {
     }
     public comentarios(String nombre, String nombreUsuario, String idJuego) {
         initComponents();
-        jPanel1.setVisible(false);
-        jPanel2.setVisible(false);
-        jPanel3.setVisible(false);
         jLabel1.setText(nombre);
         jLabelNombre.setText(nombreUsuario);
         jLabelID.setText(idJuego);
@@ -29,33 +27,73 @@ public class comentarios extends javax.swing.JFrame {
         this.idJuego = idJuego;
         mostrarComentarios();
     }
-
-    public void mostrarComentarios() {
-
-        try {
+    private String obtenerIdJuego(String nombreJuego) {
+    String idJuego = null;
+    try {
         Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
-        String sql = "SELECT nombre_usuario, comentario, nota FROM comentario WHERE id_del_juego = ?";
+        String sql = "SELECT id_del_juego FROM juegos WHERE nombre = ?";
+        PreparedStatement statement = con.prepareStatement(sql);
+        statement.setString(1, nombreJuego);
+        ResultSet rs = statement.executeQuery();
+        if (rs.next()) {
+            idJuego = rs.getString("id_del_juego");
+        }
+        rs.close();
+        statement.close();
+        con.close();
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+    return idJuego;
+}
+
+    private void mostrarComentarios() {
+    // Obtener el id_del_juego desde jLabelID
+    String idJuego = jLabelID.getText();
+    
+    try {
+        Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
+        String sql = "SELECT nombre_usuario, nota, comentario FROM comentario WHERE id_del_juego = ?";
         PreparedStatement statement = con.prepareStatement(sql);
         statement.setString(1, idJuego);
         ResultSet rs = statement.executeQuery();
-
-        if (rs.next()) {
+        
+        // Limpiar el jPanel1 antes de agregar nuevos componentes
+        jPanel1.removeAll();
+        
+        int y = 0; // Posición Y para colocar los componentes
+        while (rs.next()) {
+            // Obtener los datos del comentario
             String nombreUsuario = rs.getString("nombre_usuario");
-            String comentario = rs.getString("comentario");
             String nota = rs.getString("nota");
-
-            if (nombreUsuario != null && !nombreUsuario.isEmpty() && comentario != null && !comentario.isEmpty() && nota != null && !nota.isEmpty()) {
-                jLabel2.setText(nombreUsuario);
-                jLabel3.setText(nota);
-                jLabel4.setText(comentario);
-                jPanel1.setVisible(true);
-            } else {
-                jPanel1.setVisible(false);
+            String comentario = rs.getString("comentario");
+            
+            // Verificar si el comentario está vacío o es null
+            if (comentario != null && !comentario.isEmpty()) {
+                // Crear nuevos JLabel para mostrar la información
+                JLabel lblNombreUsuario = new JLabel("Usuario: " + nombreUsuario);
+                JLabel lblNota = new JLabel("Nota: " + nota);
+                JLabel lblComentario = new JLabel("Comentario: " + comentario);
+                
+                // Establecer la posición y tamaño de los JLabel
+                lblNombreUsuario.setBounds(10, y, 300, 20);
+                lblNota.setBounds(10, y + 20, 300, 20);
+                lblComentario.setBounds(10, y + 40, 300, 20);
+                
+                // Agregar los JLabel al jPanel1
+                jPanel1.add(lblNombreUsuario);
+                jPanel1.add(lblNota);
+                jPanel1.add(lblComentario);
+                
+                // Incrementar la posición Y para el siguiente conjunto de JLabel
+                y += 60; // Aumentar para dejar espacio entre registros
             }
-        } else {
-            jPanel1.setVisible(false);
         }
-
+        
+        // Actualizar el jPanel1
+        jPanel1.revalidate();
+        jPanel1.repaint();
+        
         rs.close();
         statement.close();
         con.close();
@@ -64,6 +102,10 @@ public class comentarios extends javax.swing.JFrame {
         ex.printStackTrace();
     }
 }
+
+
+
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -78,25 +120,18 @@ public class comentarios extends javax.swing.JFrame {
         jLabelID = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
 
         jLabelNombre.setText("jLabel11");
 
         jLabelID.setText("jLabel11");
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jButton1.setText("Comentar");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -112,101 +147,24 @@ public class comentarios extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("jLabel2");
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
 
-        jLabel3.setText("jLabel3");
-
-        jLabel4.setText("jLabel4");
-
-        jLabel6.setText("Nota:");
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(74, 74, 74)
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3))
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 941, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(22, Short.MAX_VALUE))
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel6))
-                .addGap(27, 27, 27)
-                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(24, Short.MAX_VALUE))
+            .addGap(0, 340, Short.MAX_VALUE)
         );
 
-        jLabel5.setText("jLabel5");
-
-        jLabel7.setText("jLabel7");
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 957, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(jLabel5)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        jLabel8.setText("jLabel8");
-
-        jLabel9.setText("Nota:");
-
-        jLabel10.setText("jLabel10");
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 938, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addGap(47, 47, 47)
-                        .addComponent(jLabel9)))
-                .addContainerGap(27, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
-                    .addComponent(jLabel9))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel2.setText("Nota");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -214,42 +172,46 @@ public class comentarios extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1)))
-                .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(30, 30, 30)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(41, 41, 41)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jTextField1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(27, 27, 27)
+                                        .addComponent(jLabel2))))
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap(41, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton2)
-                            .addComponent(jButton1))
-                        .addGap(37, 37, 37))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12)
-                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton2)
+                .addGap(37, 37, 37))
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -257,10 +219,69 @@ public class comentarios extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String nombreUsuario = jLabelNombre.getText();
+    try {
+    Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
+    String notaText = jTextField1.getText();
+    
+    // Verificar si el texto ingresado es un número
+    try {
+        double nota = Double.parseDouble(notaText);
+        
+        // Obtener el comentario desde el JTextArea
+        String comentario = jTextArea1.getText();
+        
+        // Obtener el ID del juego desde el jLabelID
         String idJuego = jLabelID.getText();
-        comentar c = new comentar(nombreUsuario, idJuego);
-        c.setVisible(true);
+        
+        // Comprobar si ya existe un registro con el mismo id_del_juego y nombre_usuario
+        String selectSql = "SELECT * FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
+        PreparedStatement selectStatement = con.prepareStatement(selectSql);
+        selectStatement.setString(1, idJuego);
+        selectStatement.setString(2, nombreUsuario);
+        ResultSet resultSet = selectStatement.executeQuery();
+        
+        if (resultSet.next()) {
+            // Ya existe un registro, actualizar el comentario y la nota
+            String updateSql = "UPDATE comentario SET comentario = ?, nota = ? WHERE id_del_juego = ? AND nombre_usuario = ?";
+            PreparedStatement updateStatement = con.prepareStatement(updateSql);
+            updateStatement.setString(1, comentario);
+            updateStatement.setDouble(2, nota);
+            updateStatement.setString(3, idJuego);
+            updateStatement.setString(4, nombreUsuario);
+            updateStatement.executeUpdate();
+            updateStatement.close();
+            System.out.println("Se ha actualizado el comentario existente.");
+        } else {
+            // No existe un registro, insertar uno nuevo con la nota
+            String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, comentario, nota) VALUES (?, ?, ?, ?)";
+            PreparedStatement insertStatement = con.prepareStatement(insertSql);
+            insertStatement.setString(1, idJuego);
+            insertStatement.setString(2, nombreUsuario);
+            insertStatement.setString(3, comentario);
+            insertStatement.setDouble(4, nota);
+            insertStatement.executeUpdate();
+            insertStatement.close();
+            System.out.println("Se ha añadido un nuevo comentario con nota.");
+        }
+        
+        resultSet.close();
+        selectStatement.close();
+    } catch (NumberFormatException ex) {
+        // El texto no se puede convertir a un número
+        System.out.println("No se pudo convertir el texto a un número.");
+        // Muestra un mensaje al usuario
+        JOptionPane.showMessageDialog(null, "El valor ingresado en el campo de nota no es un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    con.close();
+} catch (SQLException ex) {
+    ex.printStackTrace();
+    System.out.println("Error al ejecutar la operación en la base de datos.");
+}
+
+
+
+    
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -302,19 +323,12 @@ public class comentarios extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel jLabelID;
     private javax.swing.JLabel jLabelNombre;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }

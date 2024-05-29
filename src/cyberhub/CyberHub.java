@@ -4,6 +4,8 @@
  */
 package cyberhub;
 
+import com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme;
+
 /**
  *
  * @author duran
@@ -14,6 +16,12 @@ public class CyberHub {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        try {
+                //UIManager.setLookAndFeel( new FlatLightLaf() );
+                FlatDraculaIJTheme.setup();
+            } catch( Exception ex ) {
+                  System.err.println( "Failed to initialize LaF" );
+        }
        login u = new login();
        u.setVisible(true);
     }

@@ -169,8 +169,6 @@ public class inicio extends javax.swing.JFrame {
             }
             rank++;
         }
-
-        // Limpiar los labels si no hay suficientes resultados
         if (rank <= 2) {
             jLabel15.setText("");
             jLabel16.setText("");
@@ -298,7 +296,7 @@ public class inicio extends javax.swing.JFrame {
         info1Frame.setNombreUsuario(nombreUsuario);
         info1Frame.setVisible(true);
     }
-    private void mostrarInfo2(String nombre, String lanzamiento, String desarrolladora, String plataformas, String formato, String descripcion, String id) {
+    /*private void mostrarInfo2(String nombre, String lanzamiento, String desarrolladora, String plataformas, String formato, String descripcion, String id) {
         info2 info2Frame = new info2(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id);
         String nombreUsuario = jLabel2.getText();
         info2Frame.setNombreUsuario(nombreUsuario);
@@ -315,7 +313,7 @@ public class inicio extends javax.swing.JFrame {
         String nombreUsuario = jLabel2.getText();
         info4Frame.setNombreUsuario(nombreUsuario);
         info4Frame.setVisible(true);
-    }
+    }*/
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -798,18 +796,14 @@ public class inicio extends javax.swing.JFrame {
                 (idNum >= 108 && idNum <= 215) ||
                 (idNum >= 501 && idNum <= 730) ||
                 (idNum >= 765 && idNum <= 803)) {
-                // Abrir el frame info1
                 mostrarInfo1(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id);
             } else if (idNum >= 42 && idNum <= 107) {
-                // Abrir el frame info4
                 mostrarInfo4(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id);
             } else if ((idNum >= 216 && idNum <= 270) ||
                        (idNum >= 731 && idNum <= 764)) {
-                // Abrir el frame info3
                 mostrarInfo3(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id);
                 
             } else {
-                // Abrir el frame info2
                 mostrarInfo2(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id);
             }
             }
@@ -833,7 +827,6 @@ public class inicio extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         try {
-                //UIManager.setLookAndFeel( new FlatLightLaf() );
                 FlatDraculaIJTheme.setup();
             } catch( Exception ex ) {
                   System.err.println( "Failed to initialize LaF" );

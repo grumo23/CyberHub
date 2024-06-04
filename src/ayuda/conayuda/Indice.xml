@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<index version="1.0">
+ <indexitem text="AcercaDe" target="AcercaDe" />
+ <indexitem text="Inicio" target="Inicio" />
+ <indexitem text="CyberHub" target="CyberHub" />
+ <indexitem text="Informacion" target="Informacion" />
+ <indexitem text="Comentarios" target="Comentarios" />
+ <indexitem text="Perfil" target="Perfil" />
+</index> 
+
+

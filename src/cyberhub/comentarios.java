@@ -1,25 +1,25 @@
 package cyberhub;
 
 import javax.swing.JOptionPane;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import javax.swing.JLabel;
+import cyberhub.Conexiones;
+import javax.swing.JSeparator;
 
 public class comentarios extends javax.swing.JFrame {
 
     private String nombreUsuario;
     private String idJuego;
-    String bbdd = "jdbc:hsqldb:hsql://localhost";
-    java.sql.Connection con = null;
 
     public comentarios() {
         initComponents();
     }
     public comentarios(String nombre, String nombreUsuario, String idJuego) {
         initComponents();
+        Conexiones.crear();
         jLabel1.setText(nombre);
         jLabelNombre.setText(nombreUsuario);
         jLabelID.setText(idJuego);
@@ -27,85 +27,60 @@ public class comentarios extends javax.swing.JFrame {
         this.idJuego = idJuego;
         mostrarComentarios();
     }
-    private String obtenerIdJuego(String nombreJuego) {
-    String idJuego = null;
-    try {
-        Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
-        String sql = "SELECT id_del_juego FROM juegos WHERE nombre = ?";
-        PreparedStatement statement = con.prepareStatement(sql);
-        statement.setString(1, nombreJuego);
-        ResultSet rs = statement.executeQuery();
-        if (rs.next()) {
-            idJuego = rs.getString("id_del_juego");
-        }
-        rs.close();
-        statement.close();
-        con.close();
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-    return idJuego;
-}
-
+    
     private void mostrarComentarios() {
-    // Obtener el id_del_juego desde jLabelID
-    String idJuego = jLabelID.getText();
-    
-    try {
-        Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
-        String sql = "SELECT nombre_usuario, nota, comentario FROM comentario WHERE id_del_juego = ?";
-        PreparedStatement statement = con.prepareStatement(sql);
-        statement.setString(1, idJuego);
-        ResultSet rs = statement.executeQuery();
-        
-        // Limpiar el jPanel1 antes de agregar nuevos componentes
-        jPanel1.removeAll();
-        
-        int y = 0; // Posición Y para colocar los componentes
-        while (rs.next()) {
-            // Obtener los datos del comentario
-            String nombreUsuario = rs.getString("nombre_usuario");
-            String nota = rs.getString("nota");
-            String comentario = rs.getString("comentario");
-            
-            // Verificar si el comentario está vacío o es null
-            if (comentario != null && !comentario.isEmpty()) {
-                // Crear nuevos JLabel para mostrar la información
-                JLabel lblNombreUsuario = new JLabel("Usuario: " + nombreUsuario);
-                JLabel lblNota = new JLabel("Nota: " + nota);
-                JLabel lblComentario = new JLabel("Comentario: " + comentario);
-                
-                // Establecer la posición y tamaño de los JLabel
-                lblNombreUsuario.setBounds(10, y, 300, 20);
-                lblNota.setBounds(10, y + 20, 300, 20);
-                lblComentario.setBounds(10, y + 40, 300, 20);
-                
-                // Agregar los JLabel al jPanel1
-                jPanel1.add(lblNombreUsuario);
-                jPanel1.add(lblNota);
-                jPanel1.add(lblComentario);
-                
-                // Incrementar la posición Y para el siguiente conjunto de JLabel
-                y += 60; // Aumentar para dejar espacio entre registros
+        String idJuego = jLabelID.getText();
+            try {
+                Conexiones.con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
+                String sql = "SELECT nombre_usuario, nota, comentario FROM comentario WHERE id_del_juego = ?";
+                PreparedStatement statement = Conexiones.con.prepareStatement(sql);
+                statement.setString(1, idJuego);
+                ResultSet rs = statement.executeQuery();
+
+                jPanel1.removeAll();
+
+                int y = 0;
+                while (rs.next()) 
+                {
+                    String nombreUsuario = rs.getString("nombre_usuario");
+                    String nota = rs.getString("nota");
+                    String comentario = rs.getString("comentario");
+
+                    if (comentario != null && !comentario.isEmpty()) {
+                        JLabel labelNombreUsuario = new JLabel("Usuario: " + nombreUsuario);
+                        JLabel labelNota = new JLabel("Nota: " + nota);
+                        JLabel labelComentario = new JLabel("Comentario: " + comentario);
+
+                        labelNombreUsuario.setBounds(10, y, 300, 20);
+                        labelNota.setBounds(10, y + 20, 300, 20);
+                        labelComentario.setBounds(10, y + 40, 300, 20);
+
+                        jPanel1.add(labelNombreUsuario);
+                        jPanel1.add(labelNota);
+                        jPanel1.add(labelComentario);
+
+                        y += 60;
+
+                        JSeparator separator = new JSeparator();
+                        separator.setBounds(10, y, 300, 10);
+                        jPanel1.add(separator);
+
+                        y += 10;
+                    }
+                }
+                jPanel1.revalidate();
+                jPanel1.repaint();
+
+                rs.close();
+                statement.close();
+                Conexiones.con.close();
+            } catch (SQLException ex) 
+            {
+                JOptionPane.showMessageDialog(null, "Error al obtener los comentarios: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
-        }
-        
-        // Actualizar el jPanel1
-        jPanel1.revalidate();
-        jPanel1.repaint();
-        
-        rs.close();
-        statement.close();
-        con.close();
-    } catch (SQLException ex) {
-        JOptionPane.showMessageDialog(null, "Error al obtener los comentarios: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        ex.printStackTrace();
     }
-}
 
-
-
-    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -116,36 +91,24 @@ public class comentarios extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabelNombre = new javax.swing.JLabel();
         jLabelID = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jLabelNombre = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         jTextField1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-
-        jLabelNombre.setText("jLabel11");
+        jPanel2 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
 
         jLabelID.setText("jLabel11");
 
+        jLabelNombre.setText("jLabel11");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        jButton1.setText("Comentar");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Volver");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
 
@@ -161,128 +124,185 @@ public class comentarios extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGap(0, 423, Short.MAX_VALUE)
         );
 
         jLabel2.setText("Nota");
+
+        jPanel2.setBackground(new java.awt.Color(204, 51, 255));
+
+        jLabel3.setFont(new java.awt.Font("Roboto Medium", 0, 14)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel3.setText("VOLVER");
+        jLabel3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel3MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        jPanel3.setBackground(new java.awt.Color(204, 51, 255));
+
+        jLabel4.setFont(new java.awt.Font("Roboto Medium", 0, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("COMENTAR");
+        jLabel4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel4MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(30, 30, 30)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(57, 57, 57)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(30, 30, 30)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(41, 41, 41)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jTextField1)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(27, 27, 27)
-                                        .addComponent(jLabel2))))
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(41, Short.MAX_VALUE))
+                                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jTextField1))
+                                .addContainerGap(27, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel2)
+                                .addGap(60, 60, 60))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(19, 19, 19))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1))
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(37, 37, 37))
+                        .addGap(27, 27, 27)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(17, 17, 17)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(319, 319, 319)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24))))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-       this.dispose();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
+        this.dispose();
+    }//GEN-LAST:event_jLabel3MouseClicked
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    try {
-    Connection con = DriverManager.getConnection(bbdd, "SA", "SA");
-    String notaText = jTextField1.getText();
-    
-    // Verificar si el texto ingresado es un número
-    try {
-        double nota = Double.parseDouble(notaText);
-        
-        // Obtener el comentario desde el JTextArea
-        String comentario = jTextArea1.getText();
-        
-        // Obtener el ID del juego desde el jLabelID
-        String idJuego = jLabelID.getText();
-        
-        // Comprobar si ya existe un registro con el mismo id_del_juego y nombre_usuario
-        String selectSql = "SELECT * FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
-        PreparedStatement selectStatement = con.prepareStatement(selectSql);
-        selectStatement.setString(1, idJuego);
-        selectStatement.setString(2, nombreUsuario);
-        ResultSet resultSet = selectStatement.executeQuery();
-        
-        if (resultSet.next()) {
-            // Ya existe un registro, actualizar el comentario y la nota
-            String updateSql = "UPDATE comentario SET comentario = ?, nota = ? WHERE id_del_juego = ? AND nombre_usuario = ?";
-            PreparedStatement updateStatement = con.prepareStatement(updateSql);
-            updateStatement.setString(1, comentario);
-            updateStatement.setDouble(2, nota);
-            updateStatement.setString(3, idJuego);
-            updateStatement.setString(4, nombreUsuario);
-            updateStatement.executeUpdate();
-            updateStatement.close();
-            System.out.println("Se ha actualizado el comentario existente.");
-        } else {
-            // No existe un registro, insertar uno nuevo con la nota
-            String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, comentario, nota) VALUES (?, ?, ?, ?)";
-            PreparedStatement insertStatement = con.prepareStatement(insertSql);
-            insertStatement.setString(1, idJuego);
-            insertStatement.setString(2, nombreUsuario);
-            insertStatement.setString(3, comentario);
-            insertStatement.setDouble(4, nota);
-            insertStatement.executeUpdate();
-            insertStatement.close();
-            System.out.println("Se ha añadido un nuevo comentario con nota.");
+    private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
+        try {
+            Conexiones.con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
+            String notaText = jTextField1.getText();
+
+            try {
+                int nota = Integer.parseInt(notaText);
+                if (nota < 0 || nota > 10) 
+                {
+                    throw new NumberFormatException("Nota no válida");
+                }
+
+                String comentario = jTextArea1.getText();
+                String idJuego = jLabelID.getText();
+
+                String selectSql = "SELECT * FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
+                PreparedStatement selectStatement = Conexiones.con.prepareStatement(selectSql);
+                selectStatement.setString(1, idJuego);
+                selectStatement.setString(2, nombreUsuario);
+                ResultSet resultSet = selectStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    String updateSql = "UPDATE comentario SET comentario = ?, nota = ? WHERE id_del_juego = ? AND nombre_usuario = ?";
+                    PreparedStatement updateStatement = Conexiones.con.prepareStatement(updateSql);
+                    updateStatement.setString(1, comentario);
+                    updateStatement.setInt(2, nota);
+                    updateStatement.setString(3, idJuego);
+                    updateStatement.setString(4, nombreUsuario);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                } else {
+                    String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, comentario, nota) VALUES (?, ?, ?, ?)";
+                    PreparedStatement insertStatement = Conexiones.con.prepareStatement(insertSql);
+                    insertStatement.setString(1, idJuego);
+                    insertStatement.setString(2, nombreUsuario);
+                    insertStatement.setString(3, comentario);
+                    insertStatement.setInt(4, nota);
+                    insertStatement.executeUpdate();
+                    insertStatement.close();
+                }
+
+                resultSet.close();
+                selectStatement.close();
+                } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "No es una nota válida. Debe ser un número entero entre 0 y 10.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+            Conexiones.con.close();
+            mostrarComentarios();
+            } 
+        catch (SQLException ex) 
+        {
+            ex.printStackTrace();
         }
-        
-        resultSet.close();
-        selectStatement.close();
-    } catch (NumberFormatException ex) {
-        // El texto no se puede convertir a un número
-        System.out.println("No se pudo convertir el texto a un número.");
-        // Muestra un mensaje al usuario
-        JOptionPane.showMessageDialog(null, "El valor ingresado en el campo de nota no es un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    
-    con.close();
-} catch (SQLException ex) {
-    ex.printStackTrace();
-    System.out.println("Error al ejecutar la operación en la base de datos.");
-}
-
-
-
-    
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jLabel4MouseClicked
 
     /**
      * @param args the command line arguments
@@ -320,13 +340,15 @@ public class comentarios extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabelID;
     private javax.swing.JLabel jLabelNombre;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField1;

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<toc version="1.0">
+        <tocitem text="AcercaDe" target="AcercaDe"/>
+        <tocitem text="CyberHub" target="CyberHub" />
+        <tocitem text="Inicio" target="Inicio" />
+        <tocitem text="Informacion" target="Informacion" />
+        <tocitem text="Comentarios" target="Comentarios" />
+        <tocitem text="Perfil" target="Perfil" />
+</toc> 

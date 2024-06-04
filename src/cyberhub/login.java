@@ -186,30 +186,46 @@ public class login extends javax.swing.JFrame {
 
     private void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel7MouseClicked
         String nombreUsuario = jTextField1.getText();
-    String contraseña = jPasswordField1.getText();
-    try {
-        con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
-        String sql = "SELECT * FROM Usuarios WHERE nombre_usuario = ? AND contraseña = ?";
-        PreparedStatement statement = con.prepareStatement(sql);
-        statement.setString(1, nombreUsuario);
-        statement.setString(2, contraseña);
-        ResultSet resultSet = statement.executeQuery();
-        if (resultSet.next()) {
-            String nombre = resultSet.getString("nombre_usuario");
-            dispose();
-            inicio i = new inicio();
-            i.setNombreUsuario(nombre);
-            i.setVisible(true);
-        } else {
-            System.out.println("Nombre de usuario o contraseña incorrectos");
+        String contraseña = jPasswordField1.getText();
+
+        try {
+            con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
+            String sql = "SELECT * FROM Usuarios WHERE nombre_usuario = ? AND contraseña = ?";
+            PreparedStatement statement = con.prepareStatement(sql);
+            statement.setString(1, nombreUsuario);
+            statement.setString(2, contraseña);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) 
+                {
+                String nombre = resultSet.getString("nombre_usuario");
+                dispose();
+                if (nombre.equals("admin")) 
+                {
+                    admin a = new admin();
+                    a.setVisible(true);
+                } 
+                else 
+                {
+                    inicio i = new inicio();
+                    i.setNombreUsuario(nombre);
+                    i.setVisible(true);
+                }
+            } 
+            else 
+            {
+                System.out.println("Nombre de usuario o contraseña incorrectos");
+            }
+
+            resultSet.close();
+            statement.close();
+            con.close();
+        } 
+        catch (SQLException e) 
+        {
+            e.printStackTrace();
+            System.out.println("Error al intentar iniciar sesión");
         }
-        resultSet.close();
-        statement.close();
-        con.close();
-    } catch (SQLException e) {
-        e.printStackTrace();
-        System.out.println("Error al intentar iniciar sesión");
-    }
     }//GEN-LAST:event_jLabel7MouseClicked
 
     private void jLabel8MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel8MouseClicked
@@ -227,7 +243,6 @@ public class login extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         try {
-                //UIManager.setLookAndFeel( new FlatLightLaf() );
                 FlatDraculaIJTheme.setup();
             } catch( Exception ex ) {
                   System.err.println( "Failed to initialize LaF" );

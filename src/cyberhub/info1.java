@@ -10,17 +10,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 import cyberhub.Conexiones;
 import static cyberhub.Conexiones.con;
 
 
 public class info1 extends javax.swing.JFrame {
      private String idJuego;
-     private boolean megusta;
+     
+         
 
 
-    public info1(String nombre, String lanzamiento, String desarrolladora, String plataformas, String formato, String descripcion, String id) {
+    public info1(String nombre, String lanzamiento, String desarrolladora, String plataformas, String formato, String descripcion, String id, String nombreUsu) {
         initComponents();
         this.idJuego = id;
         jLabelNombre.setText(nombre);
@@ -35,6 +35,7 @@ public class info1 extends javax.swing.JFrame {
         jScrollPane1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         jDescripcion.setEditable(false);
+        usuario.setText(nombreUsu);
 
          try {
                 Image imagenOriginal = ImageIO.read(getClass().getResource("\\imagenes\\" + id + ".jpg"));
@@ -47,20 +48,131 @@ public class info1 extends javax.swing.JFrame {
                 ex.printStackTrace();
             }
          Conexiones.crear();
-
-
+         megusta();
     }
-    public void setNombreUsuario(String nombreUsuario) {
-        jLabel1.setText(nombreUsuario);
+    
+    public void setNombreUsuario(String nombreUsu) {
+        usuario.setText(nombreUsu);
+    }
+    
+    public void meGustaNoMeGusta() { //este CAMBIA el estado de true a false
+        String nombreUsuario = usuario.getText();
+        String idJuego = jLabelID.getText();
+        boolean aniadido = false;
+
+        try {
+            Conexiones.con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
+
+            String sqlSelect = "SELECT aniadido FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
+            PreparedStatement selectStatement = con.prepareStatement(sqlSelect);
+            selectStatement.setString(1, idJuego);
+            selectStatement.setString(2, nombreUsuario);
+
+            ResultSet resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
+                boolean registroAniadido = resultSet.getBoolean("aniadido");
+                aniadido = !registroAniadido;
+
+                String updateSql = "UPDATE comentario SET aniadido = ? WHERE id_del_juego = ? AND nombre_usuario = ?";
+                PreparedStatement updateStatement = con.prepareStatement(updateSql);
+                updateStatement.setBoolean(1, aniadido);
+                updateStatement.setString(2, idJuego);
+                updateStatement.setString(3, nombreUsuario);
+                updateStatement.executeUpdate();
+
+                System.out.println("Se ha actualizado el registro a 'aniadido' = " + aniadido);
+                updateStatement.close();
+            } else {
+                aniadido = true;
+                String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, aniadido) VALUES (?, ?, ?)";
+                PreparedStatement insertStatement = con.prepareStatement(insertSql);
+                insertStatement.setString(1, idJuego);
+                insertStatement.setString(2, nombreUsuario);
+                insertStatement.setBoolean(3, aniadido);
+                int rowsInserted = insertStatement.executeUpdate();
+
+                if (rowsInserted > 0) {
+                    System.out.println("Nuevo registro agregado.");
+                } else {
+                    System.out.println("No se pudo agregar.");
+                }
+
+                insertStatement.close();
+            }
+            resultSet.close();
+            selectStatement.close();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String imagenPath = aniadido ? "\\imagenes\\cora.png" : "\\imagenes\\coravacia.png";
+        try {
+            Image imagenOriginal = ImageIO.read(getClass().getResource(imagenPath));
+            if (imagenOriginal == null) {
+                throw new IllegalArgumentException("La imagen no se encontró: " + imagenPath);
+            }
+            Image imagenEscalada = imagenOriginal.getScaledInstance(jLabel4.getWidth(), jLabel4.getHeight(), Image.SCALE_SMOOTH);
+            ImageIcon imagenIcono = new ImageIcon(imagenEscalada);
+            jLabel4.setIcon(imagenIcono);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        jLabel4.revalidate();
+        jLabel4.repaint();
+    }
+
+    public void megusta() { //este SOLO comprueba el estado, NO CAMBIA NADA
+        String nombreUsuario = usuario.getText();
+        String idJuego = jLabelID.getText();
+        boolean aniadido = false;
+
+        try {
+            Conexiones.con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
+
+            String sqlSelect = "SELECT aniadido FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
+            PreparedStatement selectStatement = Conexiones.con.prepareStatement(sqlSelect);
+            selectStatement.setString(1, idJuego);
+            selectStatement.setString(2, nombreUsuario);
+            ResultSet resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
+                aniadido = resultSet.getBoolean("aniadido");
+            } else {
+                System.out.println("No existe el registro para la ID = " + idJuego + " y el nombre de usuario = " + nombreUsuario);
+            }
+
+            resultSet.close();
+            selectStatement.close();
+            Conexiones.con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String imagenPath = aniadido ? "\\imagenes\\cora.png" : "\\imagenes\\coravacia.png";
+        try {
+            Image imagenOriginal = ImageIO.read(getClass().getResource(imagenPath));
+            if (imagenOriginal == null) {
+                throw new IllegalArgumentException("La imagen no se encontró: " + imagenPath);
+            }
+            Image imagenEscalada = imagenOriginal.getScaledInstance(jLabel4.getWidth(), jLabel4.getHeight(), Image.SCALE_SMOOTH);
+            ImageIcon imagenIcono = new ImageIcon(imagenEscalada);
+            jLabel4.setIcon(imagenIcono);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        jLabel4.revalidate();
+        jLabel4.repaint();
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
         jLabelID = new javax.swing.JLabel();
+        usuario = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         jLabelNombre = new javax.swing.JLabel();
         jLabelLanzamiento = new javax.swing.JLabel();
         jLabelDesarrolladora = new javax.swing.JLabel();
@@ -70,19 +182,18 @@ public class info1 extends javax.swing.JFrame {
         jDescripcion = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
         jLabelImagen = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
 
-        jLabel1.setText("jLabel1");
-
         jLabelID.setText("jLabel2");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Información");
         setResizable(false);
 
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        jPanel2.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 50, 20));
 
         jLabelNombre.setFont(new java.awt.Font("Roboto Black", 1, 48)); // NOI18N
         jLabelNombre.setText("jLabelNombre");
@@ -139,15 +250,7 @@ public class info1 extends javax.swing.JFrame {
         );
 
         jPanel2.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 530, 120, -1));
-
-        jButton3.setText("Me gusta");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 560, -1, -1));
-        jPanel2.add(jLabelImagen, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 20, 392, 491));
+        jPanel2.add(jLabelImagen, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 40, 392, 491));
 
         jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -159,14 +262,18 @@ public class info1 extends javax.swing.JFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanel2.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 520, 70, 70));
+        jPanel2.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 530, 70, 70));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -185,66 +292,8 @@ public class info1 extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        String nombreUsuario = jLabel1.getText();
-        boolean aniadido = true;
-        String imagenPath = aniadido ? "cora.png" : "coravacio.png";
-
-try {
-     con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
-
-    String sqlSelect = "SELECT id_del_juego, aniadido FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
-    PreparedStatement selectStatement = Conexiones.con.prepareStatement(sqlSelect);
-    selectStatement.setString(1, idJuego);
-    selectStatement.setString(2, nombreUsuario);
-
-    ResultSet resultSet = selectStatement.executeQuery();
-
-    if (resultSet.next()) {
-        boolean registroAniadido = resultSet.getBoolean("aniadido");
-        if (registroAniadido) {
-            System.out.println("Este juego ya te gusta.");
-            JOptionPane.showMessageDialog(null, "Este juego ya te gusta.", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            String updateSql = "UPDATE comentario SET aniadido = true WHERE id_del_juego = ? AND nombre_usuario = ?";
-            PreparedStatement updateStatement = con.prepareStatement(updateSql);
-            updateStatement.setString(1, idJuego);
-            updateStatement.setString(2, nombreUsuario);
-            updateStatement.executeUpdate();
-            System.out.println("Se ha actualizado el registro a 'aniadido' = true.");
-            updateStatement.close();
-        }
-    } else {
-        String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, aniadido) VALUES (?, ?, ?)";
-        PreparedStatement insertStatement = con.prepareStatement(insertSql);
-        insertStatement.setString(1, idJuego);
-        insertStatement.setString(2, nombreUsuario);
-        insertStatement.setBoolean(3, aniadido);
-        int rowsInserted = insertStatement.executeUpdate();
-
-        if (rowsInserted > 0) {
-            System.out.println("Nuevo registro agregado correctamente a la base de datos");
-        } else {
-            System.out.println("No se pudo agregar el nuevo registro a la base de datos");
-        }
-
-        insertStatement.close();
-    }
-
-    resultSet.close();
-    selectStatement.close();
-    con.close();
-} catch (SQLException e) {
-    e.printStackTrace();
-}
-
-jLabel4.setIcon(new ImageIcon(getClass().getResource("\\imagenes\\" + imagenPath)));
-jLabel4.revalidate();
-jLabel4.repaint();
-    }//GEN-LAST:event_jButton3ActionPerformed
-
     private void jLabel2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MouseClicked
-        String nombreUsuario = jLabel1.getText();
+        String nombreUsuario = usuario.getText();
         String idJuego = jLabelID.getText();
         String nombre = jLabelNombre.getText();
         comentarios c = new comentarios(nombre, nombreUsuario, idJuego);
@@ -252,67 +301,13 @@ jLabel4.repaint();
     }//GEN-LAST:event_jLabel2MouseClicked
 
     private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
-        String nombreUsuario = jLabel1.getText();
-    boolean aniadido = true;
-
-    try {
-        con = DriverManager.getConnection(Conexiones.BASE, "SA", "SA");
-
-        String sqlSelect = "SELECT id_del_juego, aniadido FROM comentario WHERE id_del_juego = ? AND nombre_usuario = ?";
-        PreparedStatement selectStatement = con.prepareStatement(sqlSelect);
-        selectStatement.setString(1, idJuego);
-        selectStatement.setString(2, nombreUsuario);
-
-        ResultSet resultSet = selectStatement.executeQuery();
-
-        if (resultSet.next()) {
-            boolean registroAniadido = resultSet.getBoolean("aniadido");
-            aniadido = registroAniadido;
-            if (registroAniadido) {
-                String updateSql = "UPDATE comentario SET aniadido = false WHERE id_del_juego = ? AND nombre_usuario = ?";
-                PreparedStatement updateStatement = con.prepareStatement(updateSql);
-                updateStatement.setString(1, idJuego);
-                updateStatement.setString(2, nombreUsuario);
-                updateStatement.executeUpdate();
-                System.out.println("Se ha actualizado el registro a 'aniadido' = false.");
-                updateStatement.close();
-            } else {
-                String updateSql = "UPDATE comentario SET aniadido = true WHERE id_del_juego = ? AND nombre_usuario = ?";
-                PreparedStatement updateStatement = con.prepareStatement(updateSql);
-                updateStatement.setString(1, idJuego);
-                updateStatement.setString(2, nombreUsuario);
-                updateStatement.executeUpdate();
-                System.out.println("Se ha actualizado el registro a 'aniadido' = true.");
-                updateStatement.close();
-            }
-        } else {
-            String insertSql = "INSERT INTO comentario (id_del_juego, nombre_usuario, aniadido) VALUES (?, ?, ?)";
-            PreparedStatement insertStatement = con.prepareStatement(insertSql);
-            insertStatement.setString(1, idJuego);
-            insertStatement.setString(2, nombreUsuario);
-            insertStatement.setBoolean(3, aniadido);
-            int rowsInserted = insertStatement.executeUpdate();
-
-            if (rowsInserted > 0) {
-                System.out.println("Nuevo registro agregado correctamente a la base de datos");
-            } else {
-                System.out.println("No se pudo agregar el nuevo registro a la base de datos");
-            }
-
-            insertStatement.close();
-        }
-        resultSet.close();
-        selectStatement.close();
-        con.close();
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    String imagenPath = aniadido ? "cora.png" : "coravacio.png";
-    jLabel4.setIcon(new ImageIcon(getClass().getResource("\\imagenes\\" + imagenPath)));
-    jLabel4.revalidate();
-    jLabel4.repaint();
+        meGustaNoMeGusta();
     }//GEN-LAST:event_jLabel4MouseClicked
+    
+   
 
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -344,13 +339,13 @@ jLabel4.repaint();
             String formato = "Formato";
             String descripcion = "Descripción del juego";
             String id = "00552.jpg";
-            new info1(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id).setVisible(true);
+            String nombreUsu = null;
+            new info1(nombre, lanzamiento, desarrolladora, plataformas, formato, descripcion, id, nombreUsu).setVisible(true);
         }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton3;
     private javax.swing.JTextArea jDescripcion;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -366,5 +361,6 @@ jLabel4.repaint();
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel usuario;
     // End of variables declaration//GEN-END:variables
 }
